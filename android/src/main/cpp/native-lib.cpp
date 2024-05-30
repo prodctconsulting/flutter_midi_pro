@@ -11,8 +11,6 @@ std::map<int, fluid_synth_t*> synths = {};
 std::map<int, fluid_audio_driver_t*> drivers = {};
 std::map<int, int> soundfonts = {};
 int nextSfId = 1;
-
-int nextSfId = 1;
 std::mutex mtx;
 std::condition_variable cv;
 bool soundfont_loaded = false;
