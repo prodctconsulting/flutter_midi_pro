@@ -50,22 +50,20 @@ const char *nativePath = env->GetStringUTFChars(path, nullptr);
     fluid_settings_t* local_settings = new_fluid_settings();
     configure_settings(local_settings, 0.7); // Set the desired default volume
 
-    // Check if synth already exists, if so, delete the audio driver to mute the synth
-    if (synths.find(nextSfId) != synths.end()) {
-        delete_fluid_audio_driver(drivers[nextSfId]);
-        drivers.erase(nextSfId);
-    }
-
     // Create a new synth and load the soundfont
     synths[nextSfId] = new_fluid_synth(local_settings);
     int sfId = fluid_synth_sfload(synths[nextSfId], nativePath, 1);
 
     // After loading the soundfont, recreate the audio driver to unmute the synth
     drivers[nextSfId] = new_fluid_audio_driver(local_settings, synths[nextSfId]);
+    // Mute the synth by setting the master gain to 0
+    fluid_synth_set_gain(synths[nextSfId], 0.0);
 
     for (int i = 0; i < 16; i++) {
         fluid_synth_program_select(synths[nextSfId], i, sfId, bank, program);
     }
+    // Restore the original volume
+    fluid_synth_set_gain(synths[nextSfId], 0.7);
 
     env->ReleaseStringUTFChars(path, nativePath);
     soundfonts[nextSfId] = sfId;
