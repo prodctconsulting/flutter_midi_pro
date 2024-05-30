@@ -24,24 +24,56 @@ void configure_settings(fluid_settings_t* settings, double volume) {
 }
 
 
+//extern "C" JNIEXPORT int JNICALL
+//Java_com_melihhakanpektas_flutter_1midi_1pro_FlutterMidiProPlugin_loadSoundfont(JNIEnv* env, jclass clazz, jstring path, jint bank, jint program) {
+//    const char *nativePath = env->GetStringUTFChars(path, nullptr);
+//    // Create a new settings object for each synth to ensure individual control
+//    fluid_settings_t* local_settings = new_fluid_settings();
+//    configure_settings(local_settings, 0.5); // Set the desired default volume
+//
+//    synths[nextSfId] = new_fluid_synth(local_settings);
+//    drivers[nextSfId] = new_fluid_audio_driver(local_settings, synths[nextSfId]);
+//    int sfId = fluid_synth_sfload(synths[nextSfId], nativePath, 1);
+//    for (int i = 0; i < 16; i++) {
+//        fluid_synth_program_select(synths[nextSfId], i, sfId, bank, program);
+//    }
+//    env->ReleaseStringUTFChars(path, nativePath);
+//    soundfonts[nextSfId] = sfId;
+//    nextSfId++;
+//    return nextSfId - 1;
+//}
 extern "C" JNIEXPORT int JNICALL
 Java_com_melihhakanpektas_flutter_1midi_1pro_FlutterMidiProPlugin_loadSoundfont(JNIEnv* env, jclass clazz, jstring path, jint bank, jint program) {
-    const char *nativePath = env->GetStringUTFChars(path, nullptr);
+const char *nativePath = env->GetStringUTFChars(path, nullptr);
+
     // Create a new settings object for each synth to ensure individual control
     fluid_settings_t* local_settings = new_fluid_settings();
-    configure_settings(local_settings, 0.5); // Set the desired default volume
+    configure_settings(local_settings, 0.7); // Set the desired default volume
 
+    // Check if synth already exists, if so, delete the audio driver to mute the synth
+    if (synths.find(nextSfId) != synths.end()) {
+        delete_fluid_audio_driver(drivers[nextSfId]);
+        drivers.erase(nextSfId);
+    }
+
+    // Create a new synth and load the soundfont
     synths[nextSfId] = new_fluid_synth(local_settings);
-    drivers[nextSfId] = new_fluid_audio_driver(local_settings, synths[nextSfId]);
     int sfId = fluid_synth_sfload(synths[nextSfId], nativePath, 1);
+
+    // After loading the soundfont, recreate the audio driver to unmute the synth
+    drivers[nextSfId] = new_fluid_audio_driver(local_settings, synths[nextSfId]);
+
     for (int i = 0; i < 16; i++) {
         fluid_synth_program_select(synths[nextSfId], i, sfId, bank, program);
     }
+
     env->ReleaseStringUTFChars(path, nativePath);
     soundfonts[nextSfId] = sfId;
     nextSfId++;
+
     return nextSfId - 1;
 }
+
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_melihhakanpektas_flutter_1midi_1pro_FlutterMidiProPlugin_selectInstrument(JNIEnv* env, jclass clazz, jint sfId, jint channel, jint bank, jint program) {
