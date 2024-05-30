@@ -21,8 +21,6 @@ int loaded_sfId = -1;
 // Configure FluidSynth settings
 void configure_settings(fluid_settings_t* settings, double volume, int buffer_size, int sample_rate) {
     fluid_settings_setnum(settings, "synth.gain", volume);
-    fluid_settings_setint(settings, "audio.period-size", buffer_size);
-    fluid_settings_setint(settings, "audio.sample-rate", sample_rate);
 }
 
 
