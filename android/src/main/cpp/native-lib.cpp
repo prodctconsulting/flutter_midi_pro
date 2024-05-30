@@ -19,7 +19,7 @@ int loaded_sfId = -1;
 
 // Set default volume and buffer size
 // Configure FluidSynth settings
-void configure_settings(fluid_settings_t* settings, double volume, int buffer_size, int sample_rate) {
+void configure_settings(fluid_settings_t* settings, double volume) {
     fluid_settings_setnum(settings, "synth.gain", volume);
 }
 
@@ -29,7 +29,7 @@ Java_com_melihhakanpektas_flutter_1midi_1pro_FlutterMidiProPlugin_loadSoundfont(
     const char *nativePath = env->GetStringUTFChars(path, nullptr);
     // Create a new settings object for each synth to ensure individual control
     fluid_settings_t* local_settings = new_fluid_settings();
-    configure_settings(local_settings, 0.5, 4096, 44100); // Set the desired default volume
+    configure_settings(local_settings, 0.5); // Set the desired default volume
 
     synths[nextSfId] = new_fluid_synth(local_settings);
     drivers[nextSfId] = new_fluid_audio_driver(local_settings, synths[nextSfId]);
