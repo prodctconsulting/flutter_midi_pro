@@ -16,9 +16,11 @@ std::condition_variable cv;
 bool soundfont_loaded = false;
 int loaded_sfId = -1;
 
-// Set default volume
-void set_default_volume(fluid_settings_t* settings, double volume) {
+
+// Set default volume and buffer size
+void configure_settings(fluid_settings_t* settings, double volume, int buffer_size) {
     fluid_settings_setnum(settings, "synth.gain", volume);
+    fluid_settings_setint(settings, "audio.period-size", buffer_size);
 }
 
 extern "C" JNIEXPORT int JNICALL
@@ -26,7 +28,7 @@ Java_com_melihhakanpektas_flutter_1midi_1pro_FlutterMidiProPlugin_loadSoundfont(
     const char *nativePath = env->GetStringUTFChars(path, nullptr);
     // Create a new settings object for each synth to ensure individual control
     fluid_settings_t* local_settings = new_fluid_settings();
-    set_default_volume(local_settings, 0.7); // Set the desired default volume
+    configure_settings(local_settings, 0.7, 2048); // Set the desired default volume
 
     synths[nextSfId] = new_fluid_synth(local_settings);
     drivers[nextSfId] = new_fluid_audio_driver(local_settings, synths[nextSfId]);
@@ -75,10 +77,6 @@ Java_com_melihhakanpektas_flutter_1midi_1pro_FlutterMidiProPlugin_loadSoundfont(
 //
 //    synths[nextSfId] = new_fluid_synth(local_settings);
 //    drivers[nextSfId] = new_fluid_audio_driver(local_settings, synths[nextSfId]);
-//    // Load the SoundFont in a separate thread
-//    std::thread([nativePath]() {
-//    int sfId =fluid_synth_sfload(synths[nextSfId], nativePath, 1);
-//    }).detach();
 //    int sfId = fluid_synth_sfload(synths[nextSfId], nativePath, 1);
 //    for (int i = 0; i < 16; i++) {
 //        fluid_synth_program_select(synths[nextSfId], i, sfId, bank, program);
