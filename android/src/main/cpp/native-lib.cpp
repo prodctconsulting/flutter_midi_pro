@@ -18,17 +18,20 @@ int loaded_sfId = -1;
 
 
 // Set default volume and buffer size
-void configure_settings(fluid_settings_t* settings, double volume, int buffer_size) {
+// Configure FluidSynth settings
+void configure_settings(fluid_settings_t* settings, double volume, int buffer_size, int sample_rate) {
     fluid_settings_setnum(settings, "synth.gain", volume);
     fluid_settings_setint(settings, "audio.period-size", buffer_size);
+    fluid_settings_setint(settings, "audio.sample-rate", sample_rate);
 }
+
 
 extern "C" JNIEXPORT int JNICALL
 Java_com_melihhakanpektas_flutter_1midi_1pro_FlutterMidiProPlugin_loadSoundfont(JNIEnv* env, jclass clazz, jstring path, jint bank, jint program) {
     const char *nativePath = env->GetStringUTFChars(path, nullptr);
     // Create a new settings object for each synth to ensure individual control
     fluid_settings_t* local_settings = new_fluid_settings();
-    configure_settings(local_settings, 0.7, 2048); // Set the desired default volume
+    configure_settings(local_settings, 0.7, 4096, 44100); // Set the desired default volume
 
     synths[nextSfId] = new_fluid_synth(local_settings);
     drivers[nextSfId] = new_fluid_audio_driver(local_settings, synths[nextSfId]);
