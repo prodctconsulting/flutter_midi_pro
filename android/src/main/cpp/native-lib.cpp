@@ -52,16 +52,16 @@ const char *nativePath = env->GetStringUTFChars(path, nullptr);
 
     // Create a new synth and load the soundfont
     synths[nextSfId] = new_fluid_synth(local_settings);
-    int sfId = fluid_synth_sfload(synths[nextSfId], nativePath, 1);
-
-    // After loading the soundfont, recreate the audio driver to unmute the synth
-    drivers[nextSfId] = new_fluid_audio_driver(local_settings, synths[nextSfId]);
     // Mute the synth by setting the master gain to 0
     fluid_synth_set_gain(synths[nextSfId], 0.0);
+    int sfId = fluid_synth_sfload(synths[nextSfId], nativePath, 1);
 
     for (int i = 0; i < 16; i++) {
         fluid_synth_program_select(synths[nextSfId], i, sfId, bank, program);
     }
+
+    // After loading the soundfont, recreate the audio driver to unmute the synth
+    drivers[nextSfId] = new_fluid_audio_driver(local_settings, synths[nextSfId]);
     // Restore the original volume
     fluid_synth_set_gain(synths[nextSfId], 0.7);
 
