@@ -42,28 +42,33 @@ void configure_settings(fluid_settings_t* settings, double volume) {
 //    nextSfId++;
 //    return nextSfId - 1;
 //}
+
 extern "C" JNIEXPORT int JNICALL
 Java_com_melihhakanpektas_flutter_1midi_1pro_FlutterMidiProPlugin_loadSoundfont(JNIEnv* env, jclass clazz, jstring path, jint bank, jint program) {
-const char *nativePath = env->GetStringUTFChars(path, nullptr);
+    const char *nativePath = env->GetStringUTFChars(path, nullptr);
 
     // Create a new settings object for each synth to ensure individual control
     fluid_settings_t* local_settings = new_fluid_settings();
     configure_settings(local_settings, 0.7); // Set the desired default volume
 
-    // Create a new synth and load the soundfont
+    // Create a new synth
     synths[nextSfId] = new_fluid_synth(local_settings);
-    // Mute the synth by setting the master gain to 0
-    fluid_synth_set_gain(synths[nextSfId], 0.0);
+
+    // Delete the audio driver to ensure no sound during soundfont loading
+    if (drivers.find(nextSfId) != drivers.end()) {
+    delete_fluid_audio_driver(drivers[nextSfId]);
+    drivers.erase(nextSfId);
+    }
+
+    // Load the soundfont while the audio driver is deleted
     int sfId = fluid_synth_sfload(synths[nextSfId], nativePath, 1);
 
     for (int i = 0; i < 16; i++) {
         fluid_synth_program_select(synths[nextSfId], i, sfId, bank, program);
     }
 
-    // After loading the soundfont, recreate the audio driver to unmute the synth
+    // Recreate the audio driver after the soundfont is loaded
     drivers[nextSfId] = new_fluid_audio_driver(local_settings, synths[nextSfId]);
-    // Restore the original volume
-    fluid_synth_set_gain(synths[nextSfId], 0.7);
 
     env->ReleaseStringUTFChars(path, nativePath);
     soundfonts[nextSfId] = sfId;
@@ -71,6 +76,7 @@ const char *nativePath = env->GetStringUTFChars(path, nullptr);
 
     return nextSfId - 1;
 }
+
 
 
 extern "C" JNIEXPORT void JNICALL
